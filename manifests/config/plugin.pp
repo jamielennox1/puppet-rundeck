@@ -24,7 +24,8 @@
 #
 define rundeck::config::plugin(
   $source,
-  $ensure   = 'present',
+  $ensure           = 'present',
+  $archive_provider = wget,
 ) {
 
   include '::rundeck'
@@ -45,11 +46,12 @@ define rundeck::config::plugin(
   if $ensure == 'present' {
 
     archive { "download plugin ${name}":
-      ensure  => present,
-      source  => $source,
-      path    => "${plugin_dir}/${name}",
-      require => File[$plugin_dir],
-      before  => File["${plugin_dir}/${name}"],
+      ensure   => present,
+      source   => $source,
+      path     => "${plugin_dir}/${name}",
+      require  => File[$plugin_dir],
+      before   => File["${plugin_dir}/${name}"],
+      provider => $archive_provider,
     }
 
     file { "${plugin_dir}/${name}":
