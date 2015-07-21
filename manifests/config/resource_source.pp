@@ -64,22 +64,30 @@
 # }
 #
 define rundeck::config::resource_source(
-  $project_name        = undef,
-  $number              = '1',
-  $source_type         = $rundeck::params::default_source_type,
-  $include_server_node = $rundeck::params::include_server_node,
-  $resource_format     = $rundeck::params::resource_format,
-  $url                 = '',
-  $url_timeout         = $rundeck::params::url_timeout,
-  $url_cache           = $rundeck::params::url_cache,
-  $directory           = $rundeck::params::default_resource_dir,
-  $script_file         = '',
-  $script_args         = '',
-  $script_args_quoted  = $rundeck::params::script_args_quoted,
-  $script_interpreter  = $rundeck::params::script_interpreter,
+  $project_name         = undef,
+  $number               = '1',
+  $source_type          = $rundeck::params::default_source_type,
+  $include_server_node  = $rundeck::params::include_server_node,
+  $resource_format      = $rundeck::params::resource_format,
+  $url                  = '',
+  $url_timeout          = $rundeck::params::url_timeout,
+  $url_cache            = $rundeck::params::url_cache,
+  $directory            = $rundeck::params::default_resource_dir,
+  $script_file          = '',
+  $script_args          = '',
+  $script_args_quoted   = $rundeck::params::script_args_quoted,
+  $script_interpreter   = $rundeck::params::script_interpreter,
+  $ec2_node_plugin      = $rundeck::params::ec2_node_plugin,
+  $secretKey            = undef,
+  $endpoint             = $rundeck::params::endpoint,
+  $default_mapping      = $rundeck::params::default_mapping,
+  $httpProxyPort        = $rundeck::params::httpProxyPort,
+  $accessKey            = $rundeck::params::accessKey,
+  $refreshInterval      = $rundeck::params::refreshInterval,
+  $ec2_node_plugin_name = $rundeck::params::ec2_node_plugin_name,
 ) {
 
-  include rundeck
+  include ::rundeck
 
   $framework_properties = deep_merge($rundeck::params::framework_config, $::rundeck::framework_config)
 
@@ -93,7 +101,7 @@ define rundeck::config::resource_source(
 
   validate_string($project_name)
   validate_re($number, '[1-9]*')
-  validate_re($source_type, ['^file$', '^directory$', '^url$', '^script$'])
+  validate_re($source_type, ['^file$', '^directory$', '^url$', '^script$', '^aws-ec2$'])
   validate_bool($include_server_node)
   validate_absolute_path($projects_dir)
   validate_re($user, '[a-zA-Z0-9]{3,}')
@@ -278,6 +286,73 @@ define rundeck::config::resource_source(
         section => '',
         setting => "resources.source.${number}.config.argsQuoted",
         value   => $script_args_quoted,
+        require => File[$properties_file]
+      }
+    }
+    'aws-ec2': {
+      validate_bool($default_mapping)
+      validate_integer($httpProxyPort)
+      validate_integer($refreshInterval)
+      validate_string($secretKey)
+      validate_string($accessKey)
+      validate_string($endpoint)
+
+      rundeck::config::plugin { $ec2_node_plugin_name:
+        ensure => present,
+        source => $ec2_node_plugin,
+      }
+
+      ini_setting { "resources.source.${number}.config.secretKey":
+        ensure  => present,
+        path    => $properties_file,
+        section => '',
+        setting => "resources.source.${number}.config.secretKey",
+        value   => $secretKey,
+        require => File[$properties_file]
+      }
+
+      ini_setting { "resources.source.${number}.config.endpoint":
+        ensure  => present,
+        path    => $properties_file,
+        section => '',
+        setting => "resources.source.${number}.config.endpoint",
+        value   => $endpoint,
+        require => File[$properties_file]
+      }
+
+      ini_setting { "resources.source.${number}.config.useDefaultMapping":
+        ensure  => present,
+        path    => $properties_file,
+        section => '',
+        setting => "resources.source.${number}.config.useDefaultMapping",
+        value   => $default_mapping,
+        require => File[$properties_file]
+      }
+
+      ini_setting { "resources.source.${number}.config.httpProxyPort":
+        ensure  => present,
+        path    => $properties_file,
+        section => '',
+        setting => "resources.source.${number}.config.httpProxyPort",
+        value   => $httpProxyPort,
+        require => File[$properties_file]
+      }
+
+      ini_setting { "resources.source.${number}.config.accessKey":
+        ensure  => present,
+        path    => $properties_file,
+        section => '',
+        setting => "resources.source.${number}.config.accessKey",
+        value   => $accessKey,
+        require => File[$properties_file]
+      }
+
+      ini_setting { "resources.source.${number}.config.refreshInterval":
+        ensure  => present,
+        path    => $properties_file,
+        section => '',
+        setting => "resources.source.${number}.config.refreshInterval",
+        value   => $refreshInterval,
         require => File[$properties_file]
       }
     }

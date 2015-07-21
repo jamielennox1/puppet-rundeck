@@ -274,4 +274,14 @@ class rundeck::params {
   $ssl_port = '4443'
 
   $package_source = 'https://dl.bintray.com/rundeck/rundeck-deb'
+
+  #ec2 Parameters
+  $ec2_node_plugin_version  = '1.5'
+  $ec2_node_plugin_name     = "rundeck-ec2-nodes-plugin-${ec2_node_plugin_version}.jar"
+  $ec2_node_plugin_location = 'https://github.com/rundeck-plugins/rundeck-ec2-nodes-plugin/releases/download/'
+  $ec2_node_plugin          = "${ec2_node_plugin_location}/${ec2_node_plugin_version}/${ec2_node_plugin_name}"
+  $endpoint                 = 'ec2.eu-west-1.amazonaws.com'
+  $default_mapping          = true
+  $httpProxyPort            = 80
+  $refreshInterval          = 30
 }
